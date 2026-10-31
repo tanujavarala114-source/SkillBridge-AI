@@ -1,0 +1,766 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>SkillBridge AI | Career Analyzer</title>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f5fb;
+            color: #202944;
+        }
+
+        header {
+            background: #202c55;
+            color: white;
+            padding: 28px 8%;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+
+        header p {
+            margin: 0;
+            color: #dce4ff;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 18px;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            margin-bottom: 24px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px #18234a0c;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #202c55;
+        }
+
+        h3 {
+            color: #34446d;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 18px 0 8px;
+        }
+
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ccd3e2;
+            border-radius: 8px;
+            background: white;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #5367df;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #394cbd;
+        }
+
+        .hint {
+            color: #64708a;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #fff0f0;
+            color: #a32929;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 45px;
+            font-weight: bold;
+            color: #5367df;
+        }
+
+        .bar {
+            height: 12px;
+            background: #e4e8f3;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .fill {
+            height: 100%;
+            background: #5367df;
+            border-radius: 20px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 9px 14px;
+            border-radius: 20px;
+            background: #e7f7ed;
+            color: #22663b;
+            font-size: 14px;
+        }
+
+        .missing {
+            background: #fff0dd;
+            color: #8b5200;
+        }
+
+        li {
+            margin: 13px 0;
+            line-height: 1.6;
+        }
+
+        .chart-container {
+            max-width: 550px;
+            margin: 25px auto 40px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #e5e8f0;
+        }
+
+        .history-table th {
+            background: #f3f5fb;
+            color: #202c55;
+        }
+
+        .history-table tr:hover {
+            background: #f8f9fd;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64708a;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+
+            .card {
+                padding: 18px;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 9px;
+                font-size: 13px;
+            }
+
+            header h1 {
+                font-size: 25px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>SkillBridge AI</h1>
+
+    <p>
+        Discover your skill gaps.
+        Build your career roadmap.
+    </p>
+
+</header>
+
+
+<main>
+
+
+    <!-- RESUME ANALYSIS FORM -->
+
+    <section class="card">
+
+        <h2>Career Skill Analyzer</h2>
+
+        <p>
+            Upload your resume or enter your skills
+            to discover your career improvement areas.
+        </p>
+
+
+        {% if error %}
+
+            <div class="error">
+                {{ error }}
+            </div>
+
+        {% endif %}
+
+
+        <form method="POST"
+              enctype="multipart/form-data">
+
+
+            <label for="role">
+                Choose your target career
+            </label>
+
+
+            <select name="role" id="role" required>
+
+                {% for role in roles %}
+
+                    <option value="{{ role }}"
+                    {% if result and result.role == role %}
+                        selected
+                    {% endif %}>
+
+                        {{ role }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <label for="resume">
+                Upload your resume (PDF)
+            </label>
+
+
+            <input type="file"
+                   name="resume"
+                   id="resume"
+                   accept=".pdf">
+
+
+            <p class="hint">
+                Upload a text-based PDF resume.
+                Scanned PDFs may not contain readable text.
+            </p>
+
+
+            <label for="resume_text">
+                Or enter your skills manually
+            </label>
+
+
+            <textarea
+                name="resume_text"
+                id="resume_text"
+                placeholder="Example: Python, SQL, HTML, CSS, Pandas, Excel..."></textarea>
+
+
+            <button type="submit">
+                Analyze My Skills
+            </button>
+
+
+        </form>
+
+    </section>
+
+
+
+    {% if result %}
+
+
+    <!-- CAREER READINESS REPORT -->
+
+    <section class="card">
+
+        <h2>Your Career Readiness Report</h2>
+
+        <p>
+            Target role:
+            <strong>{{ result.role }}</strong>
+        </p>
+
+
+        <div class="score">
+            {{ result.score }}%
+        </div>
+
+
+        <p>
+            Skill match against the selected role's requirements
+        </p>
+
+
+        <div class="bar">
+
+            <div class="fill"
+                 style="width: {{ result.score }}%;">
+            </div>
+
+        </div>
+
+
+        <p class="hint">
+            This score measures listed skill matches only.
+            It does not predict hiring success.
+        </p>
+
+    </section>
+
+
+
+    <!-- SKILLS FOUND -->
+
+    <section class="card">
+
+        <h2>Skills Found</h2>
+
+        {% if result.found %}
+
+            <div class="tags">
+
+                {% for skill in result.found %}
+
+                    <span class="tag">
+                        {{ skill.title() }}
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p>No matching skills found.</p>
+
+        {% endif %}
+
+    </section>
+
+
+
+    <!-- MISSING SKILLS -->
+
+    <section class="card">
+
+        <h2>Skills to Develop</h2>
+
+        {% if result.missing %}
+
+            <div class="tags">
+
+                {% for skill in result.missing %}
+
+                    <span class="tag missing">
+                        {{ skill.title() }}
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p>
+                All required skills in this checklist
+                were found!
+            </p>
+
+        {% endif %}
+
+    </section>
+
+
+
+    <!-- LEARNING ROADMAP -->
+     
+<!-- PERSONALIZED LEARNING ROADMAP -->
+
+<section class="card">
+
+    <h2>🎓 Your Personalized Learning Roadmap</h2>
+
+    <p>
+        Improve your missing skills using these
+        recommended learning resources.
+    </p>
+
+    {% if result.roadmap %}
+
+        {% for item in result.roadmap %}
+
+            <div style="
+                padding:18px;
+                margin:15px 0;
+                background:#f3f5fb;
+                border-radius:10px;
+            ">
+
+                <h3>
+                    Step {{ item.week }}:
+                    {{ item.skill }}
+                </h3>
+
+                <p>{{ item.task }}</p>
+
+                <a href="{{ item.resource_url }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   style="
+                       color:#5367df;
+                       font-weight:bold;
+                       text-decoration:none;
+                   ">
+
+                    📚 {{ item.resource_title }} ↗
+
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>
+            Great! All the listed skills were found.
+            Explore advanced courses and practical projects.
+        </p>
+
+    {% endif %}
+
+</section>
+
+    <!-- RECOMMENDED PROJECTS -->
+
+    <section class="card">
+
+        <h2>Recommended Portfolio Projects</h2>
+
+        <ul>
+
+            {% for project in result.projects %}
+
+                <li>{{ project }}</li>
+
+            {% endfor %}
+
+        </ul>
+
+    </section>
+
+
+
+    <!-- INTERACTIVE CHARTS -->
+
+    <section class="card">
+
+        <h2>📊 Skill Analytics Dashboard</h2>
+
+        <p>
+            Visual analysis of your career skill readiness.
+        </p>
+
+
+        <div class="chart-container">
+
+            <h3>Skill Distribution</h3>
+
+            <canvas id="skillPieChart"></canvas>
+
+        </div>
+
+
+        <div class="chart-container">
+
+            <h3>Individual Skill Analysis</h3>
+
+            <canvas id="skillBarChart"></canvas>
+
+        </div>
+
+    </section>
+
+
+    {% endif %}
+
+
+
+    <!-- PREVIOUS ANALYSIS HISTORY -->
+
+    <section class="card">
+
+        <h2>📊 Previous Analysis History</h2>
+
+        {% if history %}
+
+            <div style="overflow-x:auto;">
+
+                <table class="history-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Career Role</th>
+
+                            <th>Match Score</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for record in history %}
+
+                            <tr>
+
+                                <td>{{ record[0] }}</td>
+
+                                <td>{{ record[1] }}</td>
+
+                                <td>
+                                    <strong>
+                                        {{ record[2] }}%
+                                    </strong>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <p>No previous analyses found.</p>
+
+        {% endif %}
+
+    </section>
+
+
+</main>
+
+
+
+<footer>
+
+    SkillBridge AI | Learn. Improve. Grow.
+
+</footer>
+
+
+
+<!-- CHART JAVASCRIPT -->
+
+{% if result %}
+
+<script>
+
+    const foundSkills = {{ result.found | tojson }};
+
+    const missingSkills = {{ result.missing | tojson }};
+
+
+    // CHART 1: DOUGHNUT CHART
+
+    new Chart(
+        document.getElementById("skillPieChart"),
+        {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: [
+                    "Skills Found",
+                    "Skills Missing"
+                ],
+
+                datasets: [{
+
+                    data: [
+                        foundSkills.length,
+                        missingSkills.length
+                    ],
+
+                    backgroundColor: [
+                        "#36A675",
+                        "#F0A34A"
+                    ],
+
+                    borderWidth: 2
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+                        position: "bottom"
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+
+    // CHART 2: BAR CHART
+
+    const allSkills = [
+        ...foundSkills,
+        ...missingSkills
+    ];
+
+
+    const skillValues = [
+
+        ...foundSkills.map(() => 1),
+
+        ...missingSkills.map(() => 0)
+
+    ];
+
+
+    new Chart(
+        document.getElementById("skillBarChart"),
+        {
+
+            type: "bar",
+
+            data: {
+
+                labels: allSkills,
+
+                datasets: [{
+
+                    label: "Skill Status (1 = Found, 0 = Missing)",
+
+                    data: skillValues,
+
+                    backgroundColor: skillValues.map(
+                        value =>
+                            value === 1
+                            ? "#36A675"
+                            : "#F0A34A"
+                    )
+
+                }]
+
+            },
+
+            options: {
+
+                indexAxis: "y",
+
+                responsive: true,
+
+                scales: {
+
+                    x: {
+
+                        min: 0,
+                        max: 1,
+
+                        ticks: {
+                            stepSize: 1
+                        }
+
+                    }
+
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+</script>
+
+{% endif %}
+
+
+</body>
+
+</html>
